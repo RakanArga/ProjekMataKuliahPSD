@@ -39,7 +39,7 @@ struct Tugas
 */
 
 // Stack
-void copyList(Tugas *task)
+Tugas *copyList(Tugas *task)
 {
     if (depan == nullptr)
     {
@@ -77,6 +77,7 @@ void copyList(Tugas *task)
         currentCopy = baru;
         helper = helper->next;
     }
+    return pbaru;
 }
 
 void push(stack *&top, Tugas *snapshot)
@@ -101,13 +102,35 @@ Tugas *pop(stack *&top)
     return snapshot;
 }
 
-void undo()
+void undo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot )
 {
+    if (undoStack == nullptr)
+    {
+        cout << "Hmm.. Kosong" << endl;
+        return;
+    }
 
+    push(redoStack, copyList(snapshot));
+
+    Tugas *statesebelum = pop(undoStack);
+
+    depan = statesebelum;
+
+    cout << "Berhasil Undo..\n";
 }
-void redo()
+void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot )
 {
+    if (undoStack == nullptr)
+    {
+        cout << "Hmm.. Kosong" << endl;
+        return;
+    }
 
+    push(undoStack, copyList(snapshot));
+
+    Tugas *stateberikut = pop(redoStack);
+    depan = stateberikut;
+    cout << "Berhasil Redos..\n";
 }
 // Linked List
 Tugas *depan = NULL;
