@@ -7,8 +7,13 @@ using namespace std;
 using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
-// TODO: 1. Cek Bagian tambahTugas karena jadi forever loop mungkin pas masukin datanya ada yang kurang bener (WELL... UDAH DEH KEKNYA)
-// 2. SEGFAULT PAS HAPUS TUGAS (AMANNNN Ternyata emang gaada return aja)
+// TODO: 
+// 1. Nambahin 3 Struktur data lagi
+// 2. Filter Tugas Pake status
+// 3. Detail tugas
+// 4. Undo Dan Redo.
+// 5. Masukkin yang fungsi load ke linkeed list
+
 
 struct Tugas
 {
@@ -68,6 +73,7 @@ void hapusTugas(string namaTugas)
 
 
     Tugas *helper;
+    helper = depan;
     while (helper->next->namaTugas != namaTugas && helper->next != NULL)
     {
         helper = helper->next;
@@ -197,7 +203,7 @@ void safe()
     helper = depan;
 
     fstream safe("holder.txt", ios::out);
-    while (helper->next != NULL)
+    while (helper != NULL)
     {
         safe << "Nama Tugas: " << helper->namaTugas << endl;
         safe << "Mata Kuliah: " << helper->namaMatkul << endl;
