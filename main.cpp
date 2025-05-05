@@ -6,6 +6,10 @@
 using namespace std;
 using namespace std::chrono;
 
+// LIST LIST ERROR YANG HARUS DI FIX
+// TODO: 1. Cek Bagian tambahTugas karena jadi forever loop mungkin pas masukin datanya ada yang kurang bener (WELL... UDAH DEH KEKNYA)
+// 2. SEGFAULT PAS HAPUS TUGAS (AMANNNN Ternyata emang gaada return aja)
+
 struct Tugas
 {
     string namaTugas;
@@ -31,34 +35,44 @@ void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool stat
     {
         depan = tugasBaru;
     }
-
-    Tugas *helper;
-    helper = depan;
-    while (helper->next != NULL)
+    else
     {
-        helper = helper->next;
+        Tugas *helper;
+        helper = depan;
+        while (helper->next != NULL)
+        {
+            helper = helper->next;
+        }
+        helper->next = tugasBaru;
     }
-    helper->next = tugasBaru;
 }
 
 void hapusTugas(string namaTugas)
 {
+    // Case 1: Kalo gaada node
     if (depan == NULL)
     {
+        cout << "Gaada Tugas Disini\n";
         return;
     }
+
     if (depan->namaTugas == namaTugas)
     {
         Tugas *temp;
         temp = depan;
         depan = depan->next;
         delete (temp);
+        cout << "Tugas Dihapus..\n";
+        return;
     }
+
+
     Tugas *helper;
     while (helper->next->namaTugas != namaTugas && helper->next != NULL)
     {
         helper = helper->next;
     }
+
 
     if (helper->next != NULL)
     {
@@ -66,21 +80,31 @@ void hapusTugas(string namaTugas)
         temp = helper->next;
         helper->next = helper->next->next;
         delete (temp);
+        cout << "Tugas:" << namaTugas << "Udah Kehapus";
+        return;
+    }
+    else
+    {
+        cout << "Tugas itu gaada bro\n";
     }
 }
+
+time_point<system_clock> parsingDeadline(string &deadline);
+bool displayTimeRemaining(Tugas &task);
+
 void displayTugas()
 {
     if (depan == NULL)
     {
-        cout << "Tidak Ada Tugas./n";
+        cout << "Tidak Ada Tugas.\n";
         return;
     }
 
     Tugas *helper = depan;
-    cout << "Daftar Semua Tugas:/n";
-    while (helper != NULL)
+    cout << "Daftar Semua Tugas:\n";
+    while (helper != nullptr)
     {
-        cout << "----------------------------/n";
+        cout << "----------------------------\n";
         cout << "Tugas       : " << helper->namaTugas << endl;
         cout << "Mata Kuliah : " << helper->namaMatkul << endl;
         cout << "Deadline    : " << helper->deadline << endl;
@@ -100,7 +124,7 @@ void displayTugasMatkul(string namaMatkulCari)
     {
         if (helper->namaMatkul == namaMatkulCari)
         {
-            cout << "----------------------------/n";
+            cout << "----------------------------\n";
             cout << "Tugas       : " << helper->namaTugas << endl;
             cout << "Deadline    : " << helper->deadline << endl;
             cout << "Status      : " << (helper->status ? "selesai" : "belum selesai") << endl;
@@ -238,7 +262,7 @@ bool displayTimeRemaining(Tugas &task)
 
     if (now < deadlineTime)
     {
-        // HIDUP JOKOWI!!!!!!!
+
         auto remaining = deadlineTime - now;
         auto jam = duration_cast<hours>(remaining).count();
         auto hari = jam / 24;
@@ -258,6 +282,90 @@ bool displayTimeRemaining(Tugas &task)
 int main()
 {
     int pilihan;
-    cout << "Selamat Datang Di SantaiTapiJalan" << endl;
-    cout << "Mau numpuk tugas lagi ya?" << endl;
+    string namaTugas, namaMatkul, deadline;
+    bool status;
+
+    cout << "Selamat Datang Di SantaiTapiJalan\n";
+    cout << "Mau Numpuk Tugas Lagi Yeee?\n";
+    do
+    {
+        cout << "\nMenu:\n";
+        cout << "1. Tambah Tugas\n";
+        cout << "2. Hapus Tugas\n";
+        cout << "3. Ubah Status Tugas\n";
+        cout << "4. Tampilkan Semua Tugas\n";
+        cout << "5. Tampilkan Tugas Berdasarkan Mata Kuliah\n";
+        cout << "6. Simpan Tugas ke File\n";
+        cout << "7. Muat Tugas dari File\n";
+        cout << "8. Urutkan Tugas Berdasarkan Deadline\n";
+        cout << "9. Keluar\n";
+        cout << "Pilih opsi (1-9): ";
+        cin >> pilihan;
+
+        switch (pilihan)
+        {
+        case 1:
+            cout << "Masukkan Nama Tugas: ";
+            cin.ignore(); // Clear the newline character from the input buffer
+            getline(cin, namaTugas);
+            cout << "Masukkan Nama Mata Kuliah: ";
+            getline(cin, namaMatkul);
+            cout << "Masukkan Deadline (YYYY-MM-DD): ";
+            getline(cin, deadline);
+            cout << "Apakah tugas sudah selesai? (1 untuk ya, 0 untuk tidak): ";
+            cin >> status;
+            tambahTugas(namaTugas, namaMatkul, deadline, status);
+            break;
+
+        case 2:
+            cout << "Masukkan Nama Tugas yang ingin dihapus: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            hapusTugas(namaTugas);
+            break;
+
+        case 3:
+            cout << "Masukkan Nama Tugas untuk mengubah status: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            ubahStatus(namaTugas);
+            break;
+
+        case 4:
+            displayTugas();
+            break;
+
+        case 5:
+            cout << "Masukkan Nama Mata Kuliah: ";
+            cin.ignore();
+            getline(cin, namaMatkul);
+            displayTugasMatkul(namaMatkul);
+            break;
+
+        case 6:
+            safe();
+            cout << "Tugas telah disimpan ke file.\n";
+            break;
+
+        case 7:
+            load();
+            break;
+
+        case 8:
+            sortbyDeadline();
+            cout << "Tugas telah diurutkan berdasarkan deadline.\n";
+            break;
+
+        case 9:
+            cout << "Keluar dari aplikasi.\n";
+            break;
+
+        default:
+            cout << "Pilihan tidak valid. Silakan coba lagi.\n";
+            break;
+        }
+
+    } while (pilihan != 9);
+
+    return 0;
 }
