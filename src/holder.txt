@@ -1,10 +1,5 @@
-Nama Tugas: Laprak
-Mata Kuliah: Sistem Basis data
-Deadline: 2025-09-09
-Status: Belum
---------------------------
-Nama Tugas: Limit
-Mata Kuliah: Matematika 2
+Nama Tugas: Jancok
+Mata Kuliah: Anjing
 Deadline: 2025-09-08
 Status: Belum
 --------------------------

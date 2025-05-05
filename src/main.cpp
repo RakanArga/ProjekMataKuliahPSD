@@ -7,22 +7,36 @@ using namespace std;
 using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
-// TODO: 
+// TODO:
 // 1. Nambahin 3 Struktur data lagi
 // 2. Filter Tugas Pake status
 // 3. Detail tugas
 // 4. Undo Dan Redo.
-// 5. Masukkin yang fungsi load ke linkeed list
-
+// 5. Masukkin yang fungsi load ke linked list
+// 6. Coba gimana caranya biar file txt ngga re-write
 
 struct Tugas
 {
     string namaTugas;
     string namaMatkul;
     string deadline; // Format "YYYY-MM-DD"
-    bool status = false;
+    bool status;
     time_point<system_clock> waktuMulai;
     Tugas *next = nullptr;
+};
+
+// Algoritma buat stack 
+/*
+1. Copy Dulu state linked list sebelumnya
+2. Push state ke dalam stack
+3. Pop kalo emang udah dibutuhin 
+4. Baru bikin operasi 
+
+
+*/
+struct stack
+{
+
 };
 
 Tugas *depan = NULL;
@@ -71,14 +85,12 @@ void hapusTugas(string namaTugas)
         return;
     }
 
-
     Tugas *helper;
     helper = depan;
     while (helper->next->namaTugas != namaTugas && helper->next != NULL)
     {
         helper = helper->next;
     }
-
 
     if (helper->next != NULL)
     {
@@ -165,34 +177,49 @@ void sortbyDeadline()
 
 void ubahStatus(string tugas)
 {
-    // Struct Tugas
-    // Buat Temp nya dimana dah?
-    Tugas *helper;
-    helper = depan;
+    bool ditemukan = false;
+    Tugas* helper = depan;
 
-    Tugas *temp;
-    temp = helper;
-
-    // Kalau tugas itu depan
-    if (helper == depan)
+    while (helper != NULL)
     {
-        depan = helper->next;
-        temp = helper;
-        delete (temp);
-    }
-    // Mencari nama tugas sesuai dengan linked list yang ada
-    while (helper->next != NULL)
-    {
+        if (helper->namaTugas == tugas){
+            helper->status = !helper->status;
+            cout<<"Tugas    : "<<helper->namaTugas<<endl;
+            cout<<"Deadline : "<<helper->deadline<<endl;
+            cout<<"status   : "<<(helper->status ? "selesai" : "belum selesai")<< endl;
+            ditemukan = true;
+            break;
+        }
         helper = helper->next;
+        
     }
-
-    if (helper->namaTugas == tugas)
-    {
-        helper->status = true;
-        temp = helper;
-        delete (temp);
+    if (!ditemukan){
+        cout<<"\ntugas tidak di temukan"<<tugas;
     }
 }
+
+void displayStatus(bool statusCari)
+{
+    bool ditemukan = false;
+    Tugas* helper = depan;
+
+    cout<<"Tugas dengan Status : "<<(statusCari ? "selesai" : "belum selesai")<<endl;
+
+    while (helper != NULL){
+        if(helper->status == statusCari){
+            cout<<"Tugas    : "<<helper->namaTugas<<endl;
+            cout << "Mata Kuliah : " << helper->namaMatkul << endl;
+            cout<<"Deadline : "<<helper->deadline<<endl;
+            cout<<"status   : "<<(helper->status ? "selesai" : "belum selesai")<< endl;
+            ditemukan = true;
+        }
+        helper = helper->next;
+    }
+    if (!ditemukan){
+        cout<<"tidak ada tugas dengan status tersebut/n";
+    }
+}
+
 
 void safe()
 {
@@ -301,18 +328,22 @@ int main()
         cout << "3. Ubah Status Tugas\n";
         cout << "4. Tampilkan Semua Tugas\n";
         cout << "5. Tampilkan Tugas Berdasarkan Mata Kuliah\n";
-        cout << "6. Simpan Tugas ke File\n";
-        cout << "7. Muat Tugas dari File\n";
-        cout << "8. Urutkan Tugas Berdasarkan Deadline\n";
-        cout << "9. Keluar\n";
-        cout << "Pilih opsi (1-9): ";
+        cout << "6. Tampilkan Tugas Berdasarkan Status\n";
+        cout << "7. Lihat Detail Tugas\n";
+        cout << "8. Simpan Tugas ke File\n";
+        cout << "9. Muat Tugas dari File\n";
+        cout << "10. Urutkan Tugas Berdasarkan Deadline\n";
+        cout << "11. Undo\n";
+        cout << "12. Redo\n";
+        cout << "13. Keluar\n";
+        cout << "Pilih opsi (1-13): ";
         cin >> pilihan;
-
+    
         switch (pilihan)
         {
         case 1:
             cout << "Masukkan Nama Tugas: ";
-            cin.ignore(); // Clear the newline character from the input buffer
+            cin.ignore();
             getline(cin, namaTugas);
             cout << "Masukkan Nama Mata Kuliah: ";
             getline(cin, namaMatkul);
@@ -322,56 +353,75 @@ int main()
             cin >> status;
             tambahTugas(namaTugas, namaMatkul, deadline, status);
             break;
-
+    
         case 2:
             cout << "Masukkan Nama Tugas yang ingin dihapus: ";
             cin.ignore();
             getline(cin, namaTugas);
             hapusTugas(namaTugas);
             break;
-
+    
         case 3:
             cout << "Masukkan Nama Tugas untuk mengubah status: ";
             cin.ignore();
             getline(cin, namaTugas);
             ubahStatus(namaTugas);
             break;
-
+    
         case 4:
             displayTugas();
             break;
-
+    
         case 5:
             cout << "Masukkan Nama Mata Kuliah: ";
             cin.ignore();
             getline(cin, namaMatkul);
             displayTugasMatkul(namaMatkul);
             break;
-
+    
         case 6:
+            cout << "Tampilkan tugas dengan status (1 untuk selesai, 0 untuk belum selesai): ";
+            cin >> status;
+            displayStatus(status);
+            break;
+    
+        case 7:
+            cout << "Masukkan Nama Tugas untuk melihat detail: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            // Tambahkan fungsi untuk menampilkan detail tugas
+            break;
+    
+        case 8:
             safe();
             cout << "Tugas telah disimpan ke file.\n";
             break;
-
-        case 7:
+    
+        case 9:
             load();
             break;
-
-        case 8:
+    
+        case 10:
             sortbyDeadline();
             cout << "Tugas telah diurutkan berdasarkan deadline.\n";
             break;
-
-        case 9:
+    
+        case 11:
+            // Tambahkan fungsi undo
+            break;
+    
+        case 12:
+            // Tambahkan fungsi redo
+            break;
+    
+        case 13:
             cout << "Keluar dari aplikasi.\n";
             break;
-
+    
         default:
             cout << "Pilihan tidak valid. Silakan coba lagi.\n";
             break;
         }
-
-    } while (pilihan != 9);
-
-    return 0;
+    
+    } while (pilihan != 13);
 }
