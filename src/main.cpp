@@ -15,6 +15,12 @@ using namespace std::chrono;
 // 5. Masukkin yang fungsi load ke linked list
 // 6. Coba gimana caranya biar file txt ngga re-write
 
+struct stack
+{
+    Tugas *snapshot;
+    stack *top;
+};
+
 struct Tugas
 {
     string namaTugas;
@@ -31,14 +37,48 @@ struct Tugas
 2. Push state ke dalam stack
 3. Pop kalo emang udah dibutuhin 
 4. Baru bikin operasi 
-
-
 */
-struct stack
+// Stack
+void copyList(Tugas *task)
 {
+    if(depan == nullptr)
+    {
+        cout << "Tidak Ada Tugas BRO\n" ; 
+        return;
+    }
 
-};
+    Tugas *pbaru = new Tugas;
+    pbaru->namaTugas = depan->namaTugas;
+    pbaru->namaMatkul = depan->namaMatkul;
+    pbaru->deadline = depan->deadline;
+    pbaru->status = depan->status;
+    pbaru->waktuMulai = depan->waktuMulai;
+    pbaru->next = nullptr;
 
+    Tugas *helper = depan->next;
+    Tugas *currentCopy = pbaru;
+    while (helper != nullptr)
+    {
+        Tugas *baru = new Tugas;
+        baru->namaTugas = helper->namaTugas;
+        baru->namaMatkul = helper->namaMatkul;
+        baru->deadline = helper->deadline;
+        baru->status = helper->status;
+        baru->waktuMulai = helper->waktuMulai;
+        baru->next = nullptr;
+
+        currentCopy->next = baru;
+        currentCopy = baru;
+        helper = helper->next;
+    }
+    
+}
+
+
+
+
+
+// Linked List
 Tugas *depan = NULL;
 
 void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool status)
@@ -54,6 +94,7 @@ void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool stat
     {
         depan = tugasBaru;
     }
+
     else
     {
         Tugas *helper;
@@ -131,6 +172,7 @@ void displayTugas()
         helper = helper->next;
     }
 }
+
 void displayTugasMatkul(string namaMatkulCari)
 {
     bool ditemukan = false;
@@ -155,6 +197,7 @@ void displayTugasMatkul(string namaMatkulCari)
         cout << "Tidak Ada Tugas Untuk Mata Kuliah \"" << namaMatkulCari << "\".\n";
     }
 }
+
 void sortbyDeadline()
 {
     if (depan == NULL || depan->next == NULL)
