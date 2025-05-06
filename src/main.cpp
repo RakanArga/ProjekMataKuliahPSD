@@ -322,20 +322,6 @@ void safe()
 {
     // Berarti kita harus loop ke setiap node nya, nah pas di looping node itu kita
     // Write aja data data dari node pake formatting ke txt file.
-    fstream loadFile("holder.txt", ios::in);
-    string namaTugasGanda;
-    if (loadFile.is_open())
-    {
-        string membaca;
-        while (getline(loadFile, membaca))
-        {
-            if (membaca.find("Nama Tugas: "))
-            {
-                namaTugasGanda = membaca.substr(12);
-            }
-        }
-        loadFile.close();
-    }
 
     Tugas *helper;
     helper = depan;
@@ -343,15 +329,15 @@ void safe()
     fstream safe("holder.txt", ios::app);
     while (helper != NULL)
     {
-        if (helper->namaTugas != namaTugasGanda)
-        {
+     
+        
             safe << "Nama Tugas: " << helper->namaTugas << endl;
             safe << "Mata Kuliah: " << helper->namaMatkul << endl;
             safe << "Deadline: " << helper->deadline << endl;
             safe << "Status: " << (helper->status ? "Selesai" : "Belum") << endl;
             safe << "--------------------------" << endl;
             helper = helper->next;
-        }
+        
     }
     safe.close();
 }
@@ -378,14 +364,8 @@ void load()
     {
         getline(load, namaMatkul);
         getline(load, deadline);
-        // Konversi ini aja ke bool lagi, karena emang ini doang yang butuh konversi
         getline(load, status);
         getline(load,seperatorline);
-
-        namaTugas.erase(namaTugas.find_last_not_of(" \n\r\t") + 1);
-        namaMatkul.erase(namaMatkul.find_last_not_of(" \n\r\t") + 1);
-        deadline.erase(deadline.find_last_not_of(" \n\r\t") + 1);
-        status.erase(status.find_last_not_of(" \n\r\t") + 1);
 
         // Check if the strings are not empty
 
