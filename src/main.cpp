@@ -13,8 +13,7 @@ using namespace std::chrono;
 // 3. fungsi load nya belom ngebaca seluruh txt
 // 4. benerin redudansi tugas di load
 
-
-// struct buat data data 
+// struct buat data data
 struct Tugas
 {
     string namaTugas;
@@ -131,8 +130,8 @@ void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot)
 // Linked List
 void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool status)
 {
-    push(undoTop,copyList(depan));
-    
+    push(undoTop, copyList(depan));
+
     Tugas *tugasBaru = new Tugas;
     tugasBaru->namaTugas = namaTugas;
     tugasBaru->namaMatkul = namaMatkul;
@@ -159,10 +158,9 @@ void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool stat
 
 void hapusTugas(string namaTugas)
 {
-   
-    push(undoTop,copyList(depan));
 
-   
+    push(undoTop, copyList(depan));
+
     if (depan == NULL)
     {
         cout << "Gaada Tugas Disini\n";
@@ -326,15 +324,14 @@ void safe()
     // Write aja data data dari node pake formatting ke txt file.
     fstream loadFile("holder.txt", ios::in);
     string namaTugasGanda;
-    if(loadFile.is_open())
+    if (loadFile.is_open())
     {
         string membaca;
-        while(getline(loadFile, membaca))
+        while (getline(loadFile, membaca))
         {
-            if(membaca.find("Nama Tugas: "))
+            if (membaca.find("Nama Tugas: "))
             {
-                 namaTugasGanda = membaca.substr(12);
-
+                namaTugasGanda = membaca.substr(12);
             }
         }
         loadFile.close();
@@ -346,15 +343,15 @@ void safe()
     fstream safe("holder.txt", ios::app);
     while (helper != NULL)
     {
-    if(helper->namaTugas != namaTugasGanda){
-        safe << "Nama Tugas: " << helper->namaTugas << endl;
-        safe << "Mata Kuliah: " << helper->namaMatkul << endl;
-        safe << "Deadline: " << helper->deadline << endl;
-        safe << "Status: " << (helper->status ? "Selesai" : "Belum") << endl;
-        safe << "--------------------------" << endl;
-        helper = helper->next;
-    }
-   
+        if (helper->namaTugas != namaTugasGanda)
+        {
+            safe << "Nama Tugas: " << helper->namaTugas << endl;
+            safe << "Mata Kuliah: " << helper->namaMatkul << endl;
+            safe << "Deadline: " << helper->deadline << endl;
+            safe << "Status: " << (helper->status ? "Selesai" : "Belum") << endl;
+            safe << "--------------------------" << endl;
+            helper = helper->next;
+        }
     }
     safe.close();
 }
@@ -373,30 +370,44 @@ void load()
     }
 
     // Loop baca file
-   string namaTugas, namaMatkul, deadline;
-   string status;
+    string namaTugas, namaMatkul, deadline, seperatorline;
+    string status;
 
-   // Mengambil line setiap data yang ada di file
-   while(getline(load, namaTugas))
-   {
-   getline(load, namaMatkul);
-   getline(load,deadline);
-   // Konversi ini aja ke bool lagi, karena emang ini doang yang butuh konversi
-   getline(load, status);
-   
-    bool statusConversion;
-    // parsing data
-    if(status == "Selesai")
+    // Mengambil line setiap data yang ada di file
+    while (getline(load, namaTugas))
     {
-        statusConversion = true;
-    }
-    else
-    {
-        statusConversion = false;
-    }
+        getline(load, namaMatkul);
+        getline(load, deadline);
+        // Konversi ini aja ke bool lagi, karena emang ini doang yang butuh konversi
+        getline(load, status);
+        getline(load,seperatorline);
 
-    tambahTugas(namaTugas.substr(12),namaMatkul.substr(13),deadline.substr(11),statusConversion);
-   }
+        namaTugas.erase(namaTugas.find_last_not_of(" \n\r\t") + 1);
+        namaMatkul.erase(namaMatkul.find_last_not_of(" \n\r\t") + 1);
+        deadline.erase(deadline.find_last_not_of(" \n\r\t") + 1);
+        status.erase(status.find_last_not_of(" \n\r\t") + 1);
+
+        // Check if the strings are not empty
+
+        if (namaTugas.empty() || namaMatkul.empty() || deadline.empty() || status.empty())
+        {
+            cout << "Warning: One of the lines is empty. Skipping this entry." << endl;
+            continue; // Skip this entry if any line is empty
+        }
+
+        bool statusConversion;
+        // parsing data
+        if (status == "Selesai")
+        {
+            statusConversion = true;
+        }
+        else
+        {
+            statusConversion = false;
+        }
+
+        tambahTugas(namaTugas.substr(12), namaMatkul.substr(13), deadline.substr(10), statusConversion);
+    }
     load.close();
 }
 
@@ -473,91 +484,88 @@ int main()
         cout << "Pilih opsi (1-13): ";
         cin >> pilihan;
 
-        
-            switch (pilihan)
-            {
-            case 1:
-                cout << "Masukkan Nama Tugas: ";
-                cin.ignore();
-                getline(cin, namaTugas);
-                cout << "Masukkan Nama Mata Kuliah: ";
-                getline(cin, namaMatkul);
-                cout << "Masukkan Deadline (YYYY-MM-DD): ";
-                getline(cin, deadline);
-                cout << "Apakah tugas sudah selesai? (1 untuk ya, 0 untuk tidak): ";
-                cin >> status;
-                tambahTugas(namaTugas, namaMatkul, deadline, status);
-                break;
+        switch (pilihan)
+        {
+        case 1:
+            cout << "Masukkan Nama Tugas: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            cout << "Masukkan Nama Mata Kuliah: ";
+            getline(cin, namaMatkul);
+            cout << "Masukkan Deadline (YYYY-MM-DD): ";
+            getline(cin, deadline);
+            cout << "Apakah tugas sudah selesai? (1 untuk ya, 0 untuk tidak): ";
+            cin >> status;
+            tambahTugas(namaTugas, namaMatkul, deadline, status);
+            break;
 
-            case 2:
-                cout << "Masukkan Nama Tugas yang ingin dihapus: ";
-                cin.ignore();
-                getline(cin, namaTugas);
-                hapusTugas(namaTugas);
-                break;
+        case 2:
+            cout << "Masukkan Nama Tugas yang ingin dihapus: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            hapusTugas(namaTugas);
+            break;
 
-            case 3:
-                cout << "Masukkan Nama Tugas untuk mengubah status: ";
-                cin.ignore();
-                getline(cin, namaTugas);
-                ubahStatus(namaTugas);
-                break;
+        case 3:
+            cout << "Masukkan Nama Tugas untuk mengubah status: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            ubahStatus(namaTugas);
+            break;
 
-            case 4:
-                displayTugas();
-                break;
+        case 4:
+            displayTugas();
+            break;
 
-            case 5:
-                cout << "Masukkan Nama Mata Kuliah: ";
-                cin.ignore();
-                getline(cin, namaMatkul);
-                displayTugasMatkul(namaMatkul);
-                break;
+        case 5:
+            cout << "Masukkan Nama Mata Kuliah: ";
+            cin.ignore();
+            getline(cin, namaMatkul);
+            displayTugasMatkul(namaMatkul);
+            break;
 
-            case 6:
-                cout << "Tampilkan tugas dengan status (1 untuk selesai, 0 untuk belum selesai): ";
-                cin >> status;
-                displayStatus(status);
-                break;
+        case 6:
+            cout << "Tampilkan tugas dengan status (1 untuk selesai, 0 untuk belum selesai): ";
+            cin >> status;
+            displayStatus(status);
+            break;
 
-            case 7:
-                cout << "Masukkan Nama Tugas untuk melihat detail: ";
-                cin.ignore();
-                getline(cin, namaTugas);
-                // Tambahkan fungsi untuk menampilkan detail tugas
-                break;
+        case 7:
+            cout << "Masukkan Nama Tugas untuk melihat detail: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            // Tambahkan fungsi untuk menampilkan detail tugas
+            break;
 
-            case 8:
-                safe();
-                cout << "Tugas telah disimpan ke file.\n";
-                break;
+        case 8:
+            safe();
+            cout << "Tugas telah disimpan ke file.\n";
+            break;
 
-            case 9:
-                load();
-                break;
+        case 9:
+            load();
+            break;
 
-            case 10:
-                sortbyDeadline();
-                cout << "Tugas telah diurutkan berdasarkan deadline.\n";
-                break;
+        case 10:
+            sortbyDeadline();
+            cout << "Tugas telah diurutkan berdasarkan deadline.\n";
+            break;
 
-            case 11:
-                undo(undoTop, redoTop, depan);
-                break;
+        case 11:
+            undo(undoTop, redoTop, depan);
+            break;
 
-            case 12:
-                redo(undoTop, redoTop, depan);
-                break;
+        case 12:
+            redo(undoTop, redoTop, depan);
+            break;
 
-            case 13:
-                cout << "Keluar dari aplikasi.\n";
-                break;
+        case 13:
+            cout << "Keluar dari aplikasi.\n";
+            break;
 
-            default:
-                cout << "Pilihan tidak valid. Silakan coba lagi.\n";
-                break;
-            }
+        default:
+            cout << "Pilihan tidak valid. Silakan coba lagi.\n";
+            break;
         }
-        while (pilihan != 13);
-            
-    }
+    } while (pilihan != 13);
+}
