@@ -9,11 +9,8 @@ using namespace std::chrono;
 // LIST LIST ERROR YANG HARUS DI FIX
 // TODO:
 // 1. Nambahin 2 Struktur data lagi
-// 2. Detail tugas
-// 3. Undo Dan Redo.
-// 4. Masukkin yang fungsi load ke linked list
-// 5. Coba gimana caranya biar file txt ngga re-write
-// 6. Belum Implementasi copyfile nya ke delete atau pun state state sebelumnya
+// 2. Masukkin yang fungsi load ke linked list
+// 3. Coba gimana caranya biar file txt ngga re-write
 
 
 // struct buat data data 
@@ -43,7 +40,7 @@ Tugas *copyList(Tugas *task)
 {
     if (task == nullptr)
     {
-        cout << "Tidak Ada Tugas BRO\n";
+        cout << "Tidak Ada Tugas Bro.....\n";
         return nullptr;
     }
     // Ini tuh kopas kepala dari linked list satu ke linked list baru
