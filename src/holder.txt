@@ -1,5 +1,10 @@
-Nama Tugas: Laporan
-Mata Kuliah: PLC
-Deadline: 2025-01-01
+Nama Tugas: janji jiwa
+Mata Kuliah: film
+Deadline: 2025-09-09
+Status: Belum
+--------------------------
+Nama Tugas: hidup
+Mata Kuliah: filosofi
+Deadline: 2025-08-07
 Status: Selesai
 --------------------------

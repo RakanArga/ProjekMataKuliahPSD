@@ -10,7 +10,8 @@ using namespace std::chrono;
 // TODO:
 // 1. Nambahin 2 Struktur data lagi
 // 2. Masukkin yang fungsi load ke linked list
-// 3. Coba gimana caranya biar file txt ngga re-write
+// 3. fungsi load nya belom ngebaca seluruh txt
+// 4. benerin redudansi tugas di load
 
 
 // struct buat data data 
@@ -40,7 +41,6 @@ Tugas *copyList(Tugas *task)
 {
     if (task == nullptr)
     {
-        cout << "Tidak Ada Tugas Bro.....\n";
         return nullptr;
     }
     // Ini tuh kopas kepala dari linked list satu ke linked list baru
@@ -162,7 +162,7 @@ void hapusTugas(string namaTugas)
    
     push(undoTop,copyList(depan));
 
-    // Case 1: Kalo gaada node
+   
     if (depan == NULL)
     {
         cout << "Gaada Tugas Disini\n";
@@ -324,6 +324,21 @@ void safe()
 {
     // Berarti kita harus loop ke setiap node nya, nah pas di looping node itu kita
     // Write aja data data dari node pake formatting ke txt file.
+    fstream loadFile("holder.txt", ios::in);
+    string namaTugasGanda;
+    if(loadFile.is_open())
+    {
+        string membaca;
+        while(getline(loadFile, membaca))
+        {
+            if(membaca.find("Nama Tugas: "))
+            {
+                 namaTugasGanda = membaca.substr(12);
+
+            }
+        }
+        loadFile.close();
+    }
 
     Tugas *helper;
     helper = depan;
@@ -331,6 +346,7 @@ void safe()
     fstream safe("holder.txt", ios::app);
     while (helper != NULL)
     {
+    if(helper->namaTugas != namaTugasGanda){
         safe << "Nama Tugas: " << helper->namaTugas << endl;
         safe << "Mata Kuliah: " << helper->namaMatkul << endl;
         safe << "Deadline: " << helper->deadline << endl;
@@ -338,9 +354,10 @@ void safe()
         safe << "--------------------------" << endl;
         helper = helper->next;
     }
+   
+    }
     safe.close();
 }
-
 void load()
 {
 
@@ -356,11 +373,30 @@ void load()
     }
 
     // Loop baca file
-    while (getline(load, text))
+   string namaTugas, namaMatkul, deadline;
+   string status;
+
+   // Mengambil line setiap data yang ada di file
+   while(getline(load, namaTugas))
+   {
+   getline(load, namaMatkul);
+   getline(load,deadline);
+   // Konversi ini aja ke bool lagi, karena emang ini doang yang butuh konversi
+   getline(load, status);
+   
+    bool statusConversion;
+    // parsing data
+    if(status == "Selesai")
     {
-        cout << text << endl;
+        statusConversion = true;
+    }
+    else
+    {
+        statusConversion = false;
     }
 
+    tambahTugas(namaTugas.substr(12),namaMatkul.substr(13),deadline.substr(11),statusConversion);
+   }
     load.close();
 }
 
