@@ -8,18 +8,15 @@ using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
 // TODO:
-// 1. Nambahin 3 Struktur data lagi
+// 1. Nambahin 2 Struktur data lagi
 // 2. Detail tugas
 // 3. Undo Dan Redo.
 // 4. Masukkin yang fungsi load ke linked list
 // 5. Coba gimana caranya biar file txt ngga re-write
+// 6. Belum Implementasi copyfile nya ke delete atau pun state state sebelumnya
 
-struct stack
-{
-    Tugas *snapshot;
-    stack *top ;
-};
 
+// struct buat data data 
 struct Tugas
 {
     string namaTugas;
@@ -30,36 +27,39 @@ struct Tugas
     Tugas *next = nullptr;
 };
 
-// Algoritma buat stack
-/*
-1. Copy Dulu state linked list sebelumnya
-2. Push state ke dalam stack
-3. Pop kalo emang udah dibutuhin
-4. Baru bikin operasi
-*/
+struct stack
+{
+    Tugas *snapshot;
+    stack *top;
+};
+
+// Global Variabel
+Tugas *depan = nullptr;
+stack *undoTop = nullptr;
+stack *redoTop = nullptr;
 
 // Stack
 Tugas *copyList(Tugas *task)
 {
-    if (depan == nullptr)
+    if (task == nullptr)
     {
         cout << "Tidak Ada Tugas BRO\n";
-        return;
+        return nullptr;
     }
     // Ini tuh kopas kepala dari linked list satu ke linked list baru
     Tugas *pbaru = new Tugas;
-    pbaru->namaTugas = depan->namaTugas;
-    pbaru->namaMatkul = depan->namaMatkul;
-    pbaru->deadline = depan->deadline;
-    pbaru->status = depan->status;
-    pbaru->waktuMulai = depan->waktuMulai;
+    pbaru->namaTugas = task->namaTugas;
+    pbaru->namaMatkul = task->namaMatkul;
+    pbaru->deadline = task->deadline;
+    pbaru->status = task->status;
+    pbaru->waktuMulai = task->waktuMulai;
     pbaru->next = nullptr;
     /*
     node buat traversal
     helper buat traverse ke linked list lama
     currentcopy traverse yang baru
     */
-    Tugas *helper = depan->next;
+    Tugas *helper = task->next;
     Tugas *currentCopy = pbaru;
     while (helper != nullptr)
     {
@@ -90,19 +90,19 @@ void push(stack *&top, Tugas *snapshot)
 
 Tugas *pop(stack *&top)
 {
-    if(top == nullptr)
+    if (top == nullptr)
     {
         cout << "Stack Nya Kosong Bro" << endl;
-        return;
+        return nullptr;
     }
     stack *temp = top;
     Tugas *snapshot = temp->snapshot;
     top = top->top;
-    delete(temp);
+    delete (temp);
     return snapshot;
 }
 
-void undo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot )
+void undo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot)
 {
     if (undoStack == nullptr)
     {
@@ -111,16 +111,14 @@ void undo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot )
     }
 
     push(redoStack, copyList(snapshot));
-
     Tugas *statesebelum = pop(undoStack);
-
     depan = statesebelum;
-
     cout << "Berhasil Undo..\n";
 }
-void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot )
+
+void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot)
 {
-    if (undoStack == nullptr)
+    if (redoStack == nullptr)
     {
         cout << "Hmm.. Kosong" << endl;
         return;
@@ -132,11 +130,12 @@ void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot )
     depan = stateberikut;
     cout << "Berhasil Redos..\n";
 }
-// Linked List
-Tugas *depan = NULL;
 
+// Linked List
 void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool status)
 {
+    push(undoTop,copyList(depan));
+    
     Tugas *tugasBaru = new Tugas;
     tugasBaru->namaTugas = namaTugas;
     tugasBaru->namaMatkul = namaMatkul;
@@ -163,6 +162,9 @@ void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool stat
 
 void hapusTugas(string namaTugas)
 {
+   
+    push(undoTop,copyList(depan));
+
     // Case 1: Kalo gaada node
     if (depan == NULL)
     {
@@ -329,7 +331,7 @@ void safe()
     Tugas *helper;
     helper = depan;
 
-    fstream safe("holder.txt", ios::out);
+    fstream safe("holder.txt", ios::app);
     while (helper != NULL)
     {
         safe << "Nama Tugas: " << helper->namaTugas << endl;
@@ -417,7 +419,6 @@ int main()
     int pilihan;
     string namaTugas, namaMatkul, deadline;
     bool status;
-
     cout << "Selamat Datang Di SantaiTapiJalan\n";
     cout << "Mau Numpuk Tugas Lagi Yeee?\n";
     do
@@ -439,89 +440,91 @@ int main()
         cout << "Pilih opsi (1-13): ";
         cin >> pilihan;
 
-        switch (pilihan)
-        {
-        case 1:
-            cout << "Masukkan Nama Tugas: ";
-            cin.ignore();
-            getline(cin, namaTugas);
-            cout << "Masukkan Nama Mata Kuliah: ";
-            getline(cin, namaMatkul);
-            cout << "Masukkan Deadline (YYYY-MM-DD): ";
-            getline(cin, deadline);
-            cout << "Apakah tugas sudah selesai? (1 untuk ya, 0 untuk tidak): ";
-            cin >> status;
-            tambahTugas(namaTugas, namaMatkul, deadline, status);
-            break;
+        
+            switch (pilihan)
+            {
+            case 1:
+                cout << "Masukkan Nama Tugas: ";
+                cin.ignore();
+                getline(cin, namaTugas);
+                cout << "Masukkan Nama Mata Kuliah: ";
+                getline(cin, namaMatkul);
+                cout << "Masukkan Deadline (YYYY-MM-DD): ";
+                getline(cin, deadline);
+                cout << "Apakah tugas sudah selesai? (1 untuk ya, 0 untuk tidak): ";
+                cin >> status;
+                tambahTugas(namaTugas, namaMatkul, deadline, status);
+                break;
 
-        case 2:
-            cout << "Masukkan Nama Tugas yang ingin dihapus: ";
-            cin.ignore();
-            getline(cin, namaTugas);
-            hapusTugas(namaTugas);
-            break;
+            case 2:
+                cout << "Masukkan Nama Tugas yang ingin dihapus: ";
+                cin.ignore();
+                getline(cin, namaTugas);
+                hapusTugas(namaTugas);
+                break;
 
-        case 3:
-            cout << "Masukkan Nama Tugas untuk mengubah status: ";
-            cin.ignore();
-            getline(cin, namaTugas);
-            ubahStatus(namaTugas);
-            break;
+            case 3:
+                cout << "Masukkan Nama Tugas untuk mengubah status: ";
+                cin.ignore();
+                getline(cin, namaTugas);
+                ubahStatus(namaTugas);
+                break;
 
-        case 4:
-            displayTugas();
-            break;
+            case 4:
+                displayTugas();
+                break;
 
-        case 5:
-            cout << "Masukkan Nama Mata Kuliah: ";
-            cin.ignore();
-            getline(cin, namaMatkul);
-            displayTugasMatkul(namaMatkul);
-            break;
+            case 5:
+                cout << "Masukkan Nama Mata Kuliah: ";
+                cin.ignore();
+                getline(cin, namaMatkul);
+                displayTugasMatkul(namaMatkul);
+                break;
 
-        case 6:
-            cout << "Tampilkan tugas dengan status (1 untuk selesai, 0 untuk belum selesai): ";
-            cin >> status;
-            displayStatus(status);
-            break;
+            case 6:
+                cout << "Tampilkan tugas dengan status (1 untuk selesai, 0 untuk belum selesai): ";
+                cin >> status;
+                displayStatus(status);
+                break;
 
-        case 7:
-            cout << "Masukkan Nama Tugas untuk melihat detail: ";
-            cin.ignore();
-            getline(cin, namaTugas);
-            // Tambahkan fungsi untuk menampilkan detail tugas
-            break;
+            case 7:
+                cout << "Masukkan Nama Tugas untuk melihat detail: ";
+                cin.ignore();
+                getline(cin, namaTugas);
+                // Tambahkan fungsi untuk menampilkan detail tugas
+                break;
 
-        case 8:
-            safe();
-            cout << "Tugas telah disimpan ke file.\n";
-            break;
+            case 8:
+                safe();
+                cout << "Tugas telah disimpan ke file.\n";
+                break;
 
-        case 9:
-            load();
-            break;
+            case 9:
+                load();
+                break;
 
-        case 10:
-            sortbyDeadline();
-            cout << "Tugas telah diurutkan berdasarkan deadline.\n";
-            break;
+            case 10:
+                sortbyDeadline();
+                cout << "Tugas telah diurutkan berdasarkan deadline.\n";
+                break;
 
-        case 11:
-            // Tambahkan fungsi undo
-            break;
+            case 11:
+                undo(undoTop, redoTop, depan);
+                break;
 
-        case 12:
-            // Tambahkan fungsi redo
-            break;
+            case 12:
+                redo(undoTop, redoTop, depan);
+                break;
 
-        case 13:
-            cout << "Keluar dari aplikasi.\n";
-            break;
+            case 13:
+                cout << "Keluar dari aplikasi.\n";
+                break;
 
-        default:
-            cout << "Pilihan tidak valid. Silakan coba lagi.\n";
-            break;
+            default:
+                cout << "Pilihan tidak valid. Silakan coba lagi.\n";
+                break;
+            }
         }
-
-    } while (pilihan != 13);
-}
+        while (pilihan != 13);
+            
+    }
