@@ -10,8 +10,7 @@ using namespace std::chrono;
 // TODO:
 // 1. Nambahin 2 Struktur data lagi
 // 2. Masukkin yang fungsi load ke linked list
-// 3. fungsi load nya belom ngebaca seluruh txt
-// 4. benerin redudansi tugas di load
+// 3. benerin redudansi tugas di load
 
 // struct buat data data
 struct Tugas
@@ -126,6 +125,22 @@ void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot)
     depan = stateberikut;
     cout << "Berhasil Redos..\n";
 }
+void clearStack(stack *&top)
+{
+    while (top != nullptr)
+    {
+        Tugas *t = top->snapshot;
+        while (t != nullptr)
+        {
+            Tugas *tmp = t;
+            t = t->next;
+            delete tmp;
+        }
+        stack *tmpStack = top;
+        top = top->top;
+        delete tmpStack;
+    }
+}
 
 // Linked List
 void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool status)
@@ -179,7 +194,8 @@ void hapusTugas(string namaTugas)
 
     Tugas *helper;
     helper = depan;
-    while (helper->next->namaTugas != namaTugas && helper->next != NULL)
+    while (helper->next != nullptr && helper->next->namaTugas != namaTugas)
+
     {
         helper = helper->next;
     }
@@ -273,7 +289,7 @@ void ubahStatus(string tugas)
 {
     bool ditemukan = false;
     Tugas *helper = depan;
-
+    push(undoTop, copyList(depan));
     while (helper != NULL)
     {
         if (helper->namaTugas == tugas)
@@ -329,15 +345,13 @@ void safe()
     fstream safe("holder.txt", ios::app);
     while (helper != NULL)
     {
-     
-        
-            safe << "Nama Tugas: " << helper->namaTugas << endl;
-            safe << "Mata Kuliah: " << helper->namaMatkul << endl;
-            safe << "Deadline: " << helper->deadline << endl;
-            safe << "Status: " << (helper->status ? "Selesai" : "Belum") << endl;
-            safe << "--------------------------" << endl;
-            helper = helper->next;
-        
+
+        safe << "Nama Tugas: " << helper->namaTugas << endl;
+        safe << "Mata Kuliah: " << helper->namaMatkul << endl;
+        safe << "Deadline: " << helper->deadline << endl;
+        safe << "Status: " << (helper->status ? "Selesai" : "Belum") << endl;
+        safe << "--------------------------" << endl;
+        helper = helper->next;
     }
     safe.close();
 }
@@ -365,19 +379,18 @@ void load()
         getline(load, namaMatkul);
         getline(load, deadline);
         getline(load, status);
-        getline(load,seperatorline);
+        getline(load, seperatorline);
 
-        // Check if the strings are not empty
-
+        // Cek kalau string itu kosong atau engga
         if (namaTugas.empty() || namaMatkul.empty() || deadline.empty() || status.empty())
         {
             cout << "Warning: One of the lines is empty. Skipping this entry." << endl;
-            continue; // Skip this entry if any line is empty
+            continue; // Skip kalau emang ga kosong
         }
 
         bool statusConversion;
         // parsing data
-        if (status == "Selesai")
+        if (status.substr(8) == "Selesai")
         {
             statusConversion = true;
         }
@@ -385,12 +398,27 @@ void load()
         {
             statusConversion = false;
         }
-
+        // buat menghindari redudansi data
+        Tugas *helper = depan;
+        bool sudahAda = false;
+        while(helper != nullptr){
+            if(helper->namaTugas == namaTugas.substr(12))
+            {
+                sudahAda = true;
+                break;
+            }
+           helper = helper->next;
+        }
+        if(!sudahAda){
         tambahTugas(namaTugas.substr(12), namaMatkul.substr(13), deadline.substr(10), statusConversion);
     }
-    load.close();
+    else
+    {
+        cout << "Tugas \"" << namaTugas << "\" sudah ada, Skipping....\n";
+    }
 }
-
+load.close();
+}
 time_point<system_clock> parsingDeadline(string &deadline)
 {
     // Jadi ini tuh ngebuat dulu struct dengan tipe data tm
@@ -541,6 +569,9 @@ int main()
 
         case 13:
             cout << "Keluar dari aplikasi.\n";
+            clearStack(undoTop);
+            clearStack(redoTop);
+
             break;
 
         default:
