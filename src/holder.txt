@@ -1,25 +1,18 @@
-Nama Tugas: Fallback To Older Version
-Mata Kuliah: Pemrograman Struktur Data
-Deadline: 2025-09-07
+Nama Tugas: Laporan
+Mata Kuliah: SBD
+Deadline: 2025-09-09
 Status: Belum
+Detail: Sudah mengerjakan bab 1
 --------------------------
-Nama Tugas: Menjadi Normal Kembali
-Mata Kuliah: Kehidupan
-Deadline: 2025-07-05
+Nama Tugas: Limit
+Mata Kuliah: Matematika
+Deadline: 2025-09-08
 Status: Belum
+Detail: Tidak ada detail
 --------------------------
-Nama Tugas: Fallback To Older Version
-Mata Kuliah: Pemrograman Struktur Data
-Deadline: 2025-09-07
-Status: Belum
---------------------------
-Nama Tugas: Menjadi Normal Kembali
-Mata Kuliah: Kehidupan
-Deadline: 2025-07-05
-Status: Belum
---------------------------
-Nama Tugas: Halo World
-Mata Kuliah: Pemrograman Struktur Data
-Deadline: 2025-08-08
-Status: Belum
+Nama Tugas: Dewek
+Mata Kuliah: Sastra Sunda
+Deadline: 2025-06-09
+Status: Selesai
+Detail: Jirrrrrrrrrrrrr
 --------------------------

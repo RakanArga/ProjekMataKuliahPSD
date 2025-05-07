@@ -8,9 +8,8 @@ using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
 // TODO:
-//  Bikin DetailTugas
+//  Bikin Detail Tugas
 //  Sebisa Mungkin bikin error handling buat semua fungsi
-// Upgrade queue biar bisa otomatis pop pas systemclock udah lewat.
 
 // struct buat data data
 struct Tugas
@@ -19,6 +18,7 @@ struct Tugas
     string namaMatkul;
     string deadline; // Format "YYYY-MM-DD"
     bool status;
+    string detilTugas;
     time_point<system_clock> waktuMulai;
     Tugas *next = nullptr;
 };
@@ -74,6 +74,7 @@ Tugas *copyList(Tugas *task)
 {
     if (task == nullptr)
     {
+        cout << "Gaada tugas masbro" << endl;
         return nullptr;
     }
     // Ini tuh kopas kepala dari linked list satu ke linked list baru
@@ -83,6 +84,7 @@ Tugas *copyList(Tugas *task)
     pbaru->deadline = task->deadline;
     pbaru->status = task->status;
     pbaru->waktuMulai = task->waktuMulai;
+    pbaru->detilTugas = task->detilTugas;
     pbaru->next = nullptr;
     /*
     node buat traversal
@@ -100,6 +102,7 @@ Tugas *copyList(Tugas *task)
         baru->deadline = helper->deadline;
         baru->status = helper->status;
         baru->waktuMulai = helper->waktuMulai;
+        baru->detilTugas = helper->detilTugas;
         baru->next = nullptr;
         // Menyambungkan lalu current copy traverse ke node berikutnya
         // helper kemudian lanjut buat copas lagi
@@ -158,8 +161,9 @@ void redo(stack *&undoStack, stack *&redoStack, Tugas *&snapshot)
 
     Tugas *stateberikut = pop(redoStack);
     depan = stateberikut;
-    cout << "Berhasil Redos..\n";
+    cout << "Berhasil Redo..\n";
 }
+
 void clearStack(stack *&top)
 {
     while (top != nullptr)
@@ -187,6 +191,7 @@ void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool stat
     tugasBaru->namaMatkul = namaMatkul;
     tugasBaru->deadline = deadline;
     tugasBaru->status = status;
+    tugasBaru->detilTugas = "Tidak Ada detail";
     tugasBaru->waktuMulai = system_clock::now();
 
     if (depan == NULL)
@@ -270,6 +275,7 @@ void displayTugas()
         cout << "Mata Kuliah : " << helper->namaMatkul << endl;
         cout << "Deadline    : " << helper->deadline << endl;
         cout << "Status      : " << (helper->status ? "selesai" : "belum selesai") << endl;
+        cout << "Detail      : " << helper->detilTugas << endl;
         displayTimeRemaining(*helper);
         helper = helper->next;
     }
@@ -348,7 +354,35 @@ void displayStatus(bool statusCari)
         cout << "tidak ada tugas dengan status tersebut/n";
     }
 }
+void nambahDetailTugas(string namaTugas, string detilTugas)
+{
+    push(undoTop, copyList(depan));
 
+    Tugas *helper = depan;
+    bool ditemukan = false;
+
+    // Cari tugas berdasarkan nama
+    while (helper != nullptr)
+    {
+        if (helper->namaTugas == namaTugas)
+        {
+            // Jika tugas ditemukan, tambahkan detail
+            helper->detilTugas = detilTugas;
+            cout << "Nama Tugas :" << helper->namaTugas << endl;
+            cout << "Detail     :" << helper->detilTugas << endl;
+            ditemukan = true;
+            break;
+        }
+        helper = helper->next;
+    }
+
+    if (!ditemukan)
+    {
+        cout << "Tugas dengan nama \"" << namaTugas << "\" tidak ditemukan.\n";
+    }
+}
+
+// File Handler
 void safe()
 {
     // Berarti kita harus loop ke setiap node nya, nah pas di looping node itu kita
@@ -356,8 +390,12 @@ void safe()
 
     Tugas *helper;
     helper = depan;
-
-    fstream safe("holder.txt", ios::app);
+    fstream safe("holder.txt", ios::out);
+    if (!safe.is_open())
+    {
+        cout << "Gagal membuka file untuk menyimpan data.\n";
+        return;
+    }
     while (helper != NULL)
     {
 
@@ -365,9 +403,11 @@ void safe()
         safe << "Mata Kuliah: " << helper->namaMatkul << endl;
         safe << "Deadline: " << helper->deadline << endl;
         safe << "Status: " << (helper->status ? "Selesai" : "Belum") << endl;
+        safe << "Detail: " << (helper->detilTugas.empty() ? "Tidak ada detail" : helper->detilTugas) << endl;
         safe << "--------------------------" << endl;
         helper = helper->next;
     }
+    cout << "Data berhasil disimpan ke file.\n";
     safe.close();
 }
 void load()
@@ -394,15 +434,20 @@ void load()
         getline(load, namaMatkul);
         getline(load, deadline);
         getline(load, status);
+        getline(load, detailTugas);
         getline(load, seperatorline);
 
         // Cek kalau string itu kosong atau engga
-        if (namaTugas.empty() || namaMatkul.empty() || deadline.empty() || status.empty())
+        if (namaTugas.empty() || namaMatkul.empty() || deadline.empty() || status.empty() || detailTugas.empty())
         {
             cout << "Warning: One of the lines is empty. Skipping this entry." << endl;
             continue; // Skip kalau emang ga kosong
         }
-
+        string namaTugasValue = namaTugas.substr(12);   // Menghapus "Nama Tugas: "
+        string namaMatkulValue = namaMatkul.substr(13); // Menghapus "Mata Kuliah: "
+        string deadlineValue = deadline.substr(10);     // Menghapus "Deadline: "
+        string statusValue = status.substr(8);          // Menghapus "Status: "
+        string detailValue = detailTugas.substr(8);     // Menghapus "Detail: "
         bool statusConversion;
         // parsing data
         if (status.substr(8) == "Selesai")
@@ -427,15 +472,38 @@ void load()
         }
         if (!sudahAda)
         {
-            tambahTugas(namaTugas.substr(12), namaMatkul.substr(13), deadline.substr(10), statusConversion);
+            Tugas *tugasBaru = new Tugas;
+            tugasBaru->namaTugas = namaTugasValue;
+            tugasBaru->namaMatkul = namaMatkulValue;
+            tugasBaru->deadline = deadlineValue;
+            tugasBaru->status = statusConversion;
+            tugasBaru->detilTugas = (detailValue == "Tidak ada detail" ? "Tidak ada detail" : detailValue);
+            tugasBaru->next = nullptr;
+
+            if (depan == nullptr)
+            {
+                depan = tugasBaru;
+            }
+            else
+            {
+                Tugas *helper = depan;
+                while (helper->next != nullptr)
+                {
+                    helper = helper->next;
+                }
+                helper->next = tugasBaru;
+            }
         }
         else
         {
-            cout << "Tugas \"" << namaTugas << "\" sudah ada, Skipping....\n";
+            cout << "Tugas \"" << namaTugasValue << "\" sudah ada. Melewati entri ini.\n";
         }
     }
+    cout << "Data Sudah Masuk" << endl;
     load.close();
 }
+
+// utility
 time_point<system_clock> parsingDeadline(string &deadline)
 {
     // Jadi ini tuh ngebuat dulu struct dengan tipe data tm
@@ -482,6 +550,7 @@ bool displayTimeRemaining(Tugas &task)
         return false;
     }
 }
+
 // Queue
 void sisipkanPrioritas(Tugas *&queuePrioritas, Tugas *tugasBaru)
 {
@@ -504,14 +573,14 @@ void sisipkanPrioritas(Tugas *&queuePrioritas, Tugas *tugasBaru)
         helper->next = tugasBaru;
     }
 }
-void autoPop(Tugas *& queuePrioritas)
+void autoPop(Tugas *&queuePrioritas)
 {
     auto now = system_clock::now();
 
-    while(queuePrioritas != nullptr && parsingDeadline(queuePrioritas->deadline) < now)
+    while (queuePrioritas != nullptr && parsingDeadline(queuePrioritas->deadline) < now)
     {
         cout << "❌ Tugas \"" << queuePrioritas->namaTugas << "\" telah melewati deadline dan dihapus dari queue.\n";
-        Tugas* temp = queuePrioritas;
+        Tugas *temp = queuePrioritas;
         queuePrioritas = queuePrioritas->next;
         delete temp;
     }
@@ -628,11 +697,13 @@ int main()
             break;
 
         case 7:
-            cout << "Tugas    : " << depan->namaTugas << endl;
-            cout << "Mata Kuliah : " << depan->namaMatkul << endl;
-            cout << "Deadline : " << depan->deadline << endl;
-            cout << "status   : " << (depan->status ? "selesai" : "belum selesai") << endl;
+            displayTugas();
             cout << "Masukkan Nama Tugas yang ingin ditambahkan detail: ";
+            cin.ignore(); // Membersihkan buffer input
+            getline(cin, namaTugas);
+            cout << "Masukkan Detail Tugas: ";
+            getline(cin, deadline); // Gunakan variabel sementara seperti `deadline` untuk detail
+            nambahDetailTugas(namaTugas, deadline);
             break;
 
         case 8:
