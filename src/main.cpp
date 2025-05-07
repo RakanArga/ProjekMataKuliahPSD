@@ -300,23 +300,61 @@ void displayTugasMatkul(string namaMatkulCari)
     }
 }
 
-void sortbyDeadline()
+void sisipkanPrioritas(Tugas*& queuePrioritas, Tugas *tugasBaru)
 {
-    if (depan == NULL || depan->next == NULL)
-        return;
 
-    for (Tugas *a = depan; a != NULL; a = a->next)
+    auto deadlineBaru = parsingDeadline(tugasBaru->deadline);
+
+    if (queuePrioritas == nullptr || parsingDeadline(tugasBaru->deadline) < parsingDeadline(queuePrioritas->deadline))
     {
-        for (Tugas *b = a->next; b != NULL; b = b->next)
+        tugasBaru->next = queuePrioritas;
+        queuePrioritas = tugasBaru;
+    }
+    else
+    {
+        Tugas *helper = queuePrioritas;
+        while (helper->next != nullptr && parsingDeadline(tugasBaru->deadline) >= parsingDeadline(helper->next->deadline))
         {
-            if (a->deadline > b->deadline)
-            {
-                swap(a->namaTugas, b->namaTugas);
-                swap(a->namaMatkul, b->namaMatkul);
-                swap(a->deadline, b->deadline);
-                swap(a->status, b->status);
-            }
+            helper = helper->next;
         }
+        tugasBaru->next = helper->next;
+        helper->next = tugasBaru;
+    }
+}
+void tampilkanQueueprioritas()
+{
+    Tugas *queuePrioritas = nullptr;
+    Tugas *helper = depan;
+
+    while (helper != nullptr)
+    {
+        Tugas *salin = new Tugas;
+        *salin = *helper;
+        salin->next = nullptr;
+
+        sisipkanPrioritas(queuePrioritas, salin);
+
+        helper = helper->next;
+    }
+    // tampilkan
+    Tugas *temp = queuePrioritas;
+    while (temp != nullptr)
+    {
+        cout << "----------------------------\n";
+        cout << "Tugas    : " << temp->namaTugas << endl;
+        cout << "Mata Kuliah : " << temp->namaMatkul << endl;
+        cout << "Deadline : " << temp->deadline << endl;
+        cout << "status   : " << (temp->status ? "selesai" : "belum selesai") << endl;
+        displayTimeRemaining(*temp);
+        temp = temp->next;
+    
+    }
+    // bebaskan memori
+    while (queuePrioritas != nullptr)
+    {
+        Tugas *hapus = queuePrioritas;
+        queuePrioritas = queuePrioritas->next;
+        delete hapus;
     }
 }
 
@@ -594,8 +632,7 @@ int main()
             break;
 
         case 10:
-            sortbyDeadline();
-            cout << "Tugas telah diurutkan berdasarkan deadline.\n";
+            tampilkanQueueprioritas();
             break;
 
         case 11:
