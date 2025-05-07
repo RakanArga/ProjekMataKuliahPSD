@@ -648,8 +648,15 @@ int main()
         cout << "13. Statistik\n";
         cout << "14. Keluar\n";
         cout << "Pilih opsi (1-14): ";
-        cin >> pilihan;
 
+        cin >> pilihan;
+        if (cin.fail())
+        {
+            cin.clear();                                         // Menghapus flag error
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Membersihkan buffer input
+            cout << "Input tidak valid. Masukkan angka antara 1 dan 14.\n";
+            continue; // Kembali ke awal loop
+        }
         switch (pilihan)
         {
         case 1:
