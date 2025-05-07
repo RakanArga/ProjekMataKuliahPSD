@@ -8,8 +8,9 @@ using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
 // TODO:
-// 1. Nambahin 2 Struktur data lagi
+// 1. Nambahin 1 Struktur data lagi
 // 2. Bikin error handler buat tanggal
+// 3. Satuin file queue, detail tugas, array kategori
 
 // struct buat data data
 struct Tugas
@@ -18,8 +19,8 @@ struct Tugas
     string namaMatkul;
     string deadline; // Format "YYYY-MM-DD"
     bool status;
+    string detailTugas;
     string kategori;
-    string detail;
     time_point<system_clock> waktuMulai;
     Tugas *next = nullptr;
 };
@@ -34,13 +35,134 @@ struct stack
 Tugas *depan = nullptr;
 stack *undoTop = nullptr;
 stack *redoTop = nullptr;
-const int kategorimax = 4;
-string categories[kategorimax] = {"Teori" , "Praktikum"};
-int menghitung = 2;
+const int MAX_CATEGORIES = 10;
+string categories[MAX_CATEGORIES] = {"perkuliahan", "projek", "praktek"};
+int categoryCount = 3;
 
- void displayKategori();
+time_point<system_clock> parsingDeadline(string &deadline);
+bool displayTimeRemaining(Tugas &task);
 
+// Array Buat Kategori
+void tambahKategori(string newCategory)
+{
+    if (categoryCount < MAX_CATEGORIES)
+    {
+        // Cek apakah kategori sudah ada
+        for (int i = 0; i < categoryCount; i++)
+        {
+            if (categories[i] == newCategory)
+            {
+                cout << "Kategori '" << newCategory << "' sudah ada.\n";
+                return;
+            }
+        }
+        categories[categoryCount] = newCategory;
+        categoryCount++;
+        cout << "Kategori '" << newCategory << "' berhasil ditambahkan.\n";
+    }
+    else
+    {
+        cout << "Jumlah kategori sudah mencapai batas maksimum.\n";
+    }
+}
+// Fungsi untuk menampilkan semua kategori
+void displayKategori()
+{
+    cout << "Daftar Kategori:\n";
+    for (int i = 0; i < categoryCount; i++)
+    {
+        cout << i + 1 << ". " << categories[i] << endl;
+    }
+}
 
+// Fungsi untuk memilih kategori dari array
+string pilihKategori()
+{
+    int pilihan;
+    displayKategori();
+    cout << categoryCount + 1 << ". Buat kategori baru\n";
+    cout << "Pilih kategori (1-" << categoryCount + 1 << "): ";
+    cin >> pilihan;
+
+    if (pilihan > 0 && pilihan <= categoryCount)
+    {
+        return categories[pilihan - 1];
+    }
+    else if (pilihan == categoryCount + 1)
+    {
+        string newCategory;
+        cout << "Masukkan kategori baru: ";
+        cin.ignore();
+        getline(cin, newCategory);
+        tambahKategori(newCategory);
+        return newCategory;
+    }
+    else
+    {
+        cout << "Pilihan tidak valid. Menggunakan kategori 'Lainnya'.\n";
+        return "Lainnya";
+    }
+}
+// Menambahkan Detail Tugas
+// Fungsi untuk menampilkan detail tugas berdasarkan nama tugas
+void displayDetailTugas(string namaTugasCari)
+{
+    bool ditemukan = false;
+    Tugas *helper = depan;
+
+    while (helper != NULL)
+    {
+        if (helper->namaTugas == namaTugasCari)
+        {
+            cout << "----------------------------\n";
+            cout << "Detail Tugas: " << helper->namaTugas << endl;
+            cout << "----------------------------\n";
+            cout << "Nama Tugas   : " << helper->namaTugas << endl;
+            cout << "Mata Kuliah  : " << helper->namaMatkul << endl;
+            cout << "Deadline     : " << helper->deadline << endl;
+            cout << "Status       : " << (helper->status ? "selesai" : "belum selesai") << endl;
+            cout << "Detail Tugas : " << helper->detailTugas << endl;
+            displayTimeRemaining(*helper);
+            ditemukan = true;
+            break;
+        }
+        helper = helper->next;
+    }
+    if (!ditemukan)
+    {
+        cout << "Tugas dengan nama \"" << namaTugasCari << "\" tidak ditemukan.\n";
+    }
+}
+
+// Fungsi untuk menambahkan detail ke tugas yang sudah ada
+void tambahDetailTugas(string namaTugasCari, string detailBaru)
+{
+    bool ditemukan = false;
+    Tugas *helper = depan;
+
+    while (helper != NULL)
+    {
+        if (helper->namaTugas == namaTugasCari)
+        {
+            helper->detailTugas = detailBaru;
+            cout << "----------------------------\n";
+            cout << "Detail tugas untuk \"" << namaTugasCari << "\" berhasil ditambahkan.\n";
+            cout << "Tugas       : " << helper->namaTugas << endl;
+            cout << "Mata Kuliah : " << helper->namaMatkul << endl;
+            cout << "Deadline    : " << helper->deadline << endl;
+            cout << "Status      : " << (helper->status ? "selesai" : "belum selesai") << endl;
+            cout << "Detail Tugas: " << helper->detailTugas << endl;
+            displayTimeRemaining(*helper); // Tambahkan tampilan waktu tersisa
+            ditemukan = true;
+            break;
+        }
+        helper = helper->next;
+    }
+    if (!ditemukan)
+    {
+        cout << "Tugas dengan nama \"" << namaTugasCari << "\" tidak ditemukan.\n";
+    }
+}
 // Stack
 Tugas *copyList(Tugas *task)
 {
@@ -161,22 +283,6 @@ void tambahTugas(string namaTugas, string namaMatkul, string deadline, bool stat
     tugasBaru->status = status;
     tugasBaru->waktuMulai = system_clock::now();
 
-    cout << "Pilih kategori untuk tugas ini:\n";
-    displayKategori();
-    int pilihanKategori;
-    cout << "Masukkan nomor kategori: ";
-    cin >> pilihanKategori;
-
-    if (pilihanKategori < 1 || pilihanKategori > menghitung)
-    {
-        cout << "Kategori tidak valid. Tugas akan dimasukkan ke kategori \"Umum\".\n";
-        tugasBaru->kategori = "Umum";
-    }
-    else
-    {
-        tugasBaru->kategori = categories[pilihanKategori - 1];
-    }
-
     if (depan == NULL)
     {
         depan = tugasBaru;
@@ -238,9 +344,6 @@ void hapusTugas(string namaTugas)
     }
 }
 
-time_point<system_clock> parsingDeadline(string &deadline);
-bool displayTimeRemaining(Tugas &task);
-
 void displayTugas()
 {
     if (depan == NULL)
@@ -258,16 +361,7 @@ void displayTugas()
         cout << "Mata Kuliah : " << helper->namaMatkul << endl;
         cout << "Deadline    : " << helper->deadline << endl;
         cout << "Status      : " << (helper->status ? "selesai" : "belum selesai") << endl;
-        if (!helper->detail.empty())
-        {
-            cout << "Detail      : " << helper->detail << endl;
-        }
-        else
-        {
-            cout << "Detail      : Belum ada detail.\n";
-        }
         displayTimeRemaining(*helper);
-        cout << "Kategori   :" << helper->kategori << endl;
         helper = helper->next;
     }
 }
@@ -366,43 +460,7 @@ void displayStatus(bool statusCari)
     }
 }
 
-void tambahDetailTugas(string namaTugas)
-{
-    Tugas *helper = depan;
-    bool ditemukan = false;
-    while(helper != nullptr)
-    {
-        if(helper->namaTugas == namaTugas)
-        {
-            cout << "Masukkan detail baru untuk tugas \"" << namaTugas << "\": ";
-            string detailBaru;
-            cin.ignore();
-            getline(cin, detailBaru);
-
-            helper->detail = detailBaru;
-            cout << "Detail tugas \"" << namaTugas << "\" berhasil diperbarui.\n";
-            ditemukan = true;
-            break;
-        }
-        helper = helper->next;
-    }
-    if(!ditemukan)
-    {
-        cout << "Tugas dengan nama \"" << namaTugas << "\" tidak ditemukan.\n";
-    }
-}
-
-// Buat Array
-void displayKategori()
-{
-    cout << "Daftar Kategori:\n";
-    for (int i = 0; i < menghitung; i++)
-    {
-        cout << i + 1 << ". " << categories[i] << endl;
-    }
-}
-
-
+// File Handler
 void safe()
 {
     // Berarti kita harus loop ke setiap node nya, nah pas di looping node itu kita
@@ -439,7 +497,7 @@ void load()
     }
 
     // Loop baca file
-    string namaTugas, namaMatkul, deadline, seperatorline,detailTugas;
+    string namaTugas, namaMatkul, deadline, seperatorline;
     string status;
 
     // Mengambil line setiap data yang ada di file
@@ -451,7 +509,7 @@ void load()
         getline(load, seperatorline);
 
         // Cek kalau string itu kosong atau engga
-        if (namaTugas.empty() || namaMatkul.empty() || deadline.empty() || status.empty() || detailTugas.empty())
+        if (namaTugas.empty() || namaMatkul.empty() || deadline.empty() || status.empty())
         {
             cout << "Warning: One of the lines is empty. Skipping this entry." << endl;
             continue; // Skip kalau emang ga kosong
@@ -470,24 +528,28 @@ void load()
         // buat menghindari redudansi data
         Tugas *helper = depan;
         bool sudahAda = false;
-        while(helper != nullptr){
-            if(helper->namaTugas == namaTugas.substr(12))
+        while (helper != nullptr)
+        {
+            if (helper->namaTugas == namaTugas.substr(12))
             {
                 sudahAda = true;
                 break;
             }
-           helper = helper->next;
+            helper = helper->next;
         }
-        if(!sudahAda){
-        tambahTugas(namaTugas.substr(12), namaMatkul.substr(13), deadline.substr(10), statusConversion);
+        if (!sudahAda)
+        {
+            tambahTugas(namaTugas.substr(12), namaMatkul.substr(13), deadline.substr(10), statusConversion);
+        }
+        else
+        {
+            cout << "Tugas \"" << namaTugas << "\" sudah ada, Skipping....\n";
+        }
     }
-    else
-    {
-        cout << "Tugas \"" << namaTugas << "\" sudah ada, Skipping....\n";
-    }
+    load.close();
 }
-load.close();
-}
+
+// Utilities
 time_point<system_clock> parsingDeadline(string &deadline)
 {
     // Jadi ini tuh ngebuat dulu struct dengan tipe data tm
@@ -535,16 +597,15 @@ bool displayTimeRemaining(Tugas &task)
     }
 }
 
-// Array Buat Kategori
-
-
 int main()
 {
     int pilihan;
-    string namaTugas, namaMatkul, deadline;
+    string namaTugas, namaMatkul, deadline, detailBaru;
     bool status;
+
     cout << "Selamat Datang Di SantaiTapiJalan\n";
     cout << "Mau Numpuk Tugas Lagi Yeee?\n";
+
     do
     {
         cout << "\nMenu:\n";
@@ -554,14 +615,17 @@ int main()
         cout << "4. Tampilkan Semua Tugas\n";
         cout << "5. Tampilkan Tugas Berdasarkan Mata Kuliah\n";
         cout << "6. Tampilkan Tugas Berdasarkan Status\n";
-        cout << "7. Input Detail Tugas\n";
-        cout << "8. Simpan Tugas ke File\n";
-        cout << "9. Muat Tugas dari File\n";
-        cout << "10. Urutkan Tugas Berdasarkan Deadline\n";
-        cout << "11. Undo\n";
-        cout << "12. Redo\n";
-        cout << "13. Keluar\n";
-        cout << "Pilih opsi (1-13): ";
+        cout << "7. Lihat Detail Tugas\n";
+        cout << "8. Tambahkan Detail ke Tugas\n";
+        cout << "9. Simpan Tugas ke File\n";
+        cout << "10. Muat Tugas dari File\n";
+        cout << "11. Urutkan Tugas Berdasarkan Deadline\n";
+        cout << "12. Undo\n";
+        cout << "13. Redo\n";
+        cout << "14. Tambahkan Kategori Baru\n";
+        cout << "15. Tampilkan Semua Kategori\n";
+        cout << "16. Keluar\n";
+        cout << "Pilih opsi (1-16): ";
         cin >> pilihan;
 
         switch (pilihan)
@@ -611,48 +675,65 @@ int main()
             break;
 
         case 7:
-        cout << "Tugas    : " << depan->namaTugas << endl;
-        cout << "Mata Kuliah : " << depan->namaMatkul << endl;
-        cout << "Deadline : " << depan->deadline << endl;
-        cout << "status   : " << (depan->status ? "selesai" : "belum selesai") << endl;
-        cout << "Masukkan Nama Tugas yang ingin ditambahkan detail: ";
-        getline(cin, namaTugas);
-        cin.ignore();
-        tambahDetailTugas(namaTugas);
+            cout << "Masukkan Nama Tugas untuk melihat detail: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            displayDetailTugas(namaTugas);
             break;
 
         case 8:
+            cout << "Masukkan Nama Tugas untuk menambahkan detail: ";
+            cin.ignore();
+            getline(cin, namaTugas);
+            cout << "Masukkan Detail Baru: ";
+            getline(cin, detailBaru);
+            tambahDetailTugas(namaTugas, detailBaru);
+            break;
+
+        case 9:
             safe();
             cout << "Tugas telah disimpan ke file.\n";
             break;
 
-        case 9:
+        case 10:
             load();
             break;
 
-        case 10:
+        case 11:
             sortbyDeadline();
             cout << "Tugas telah diurutkan berdasarkan deadline.\n";
             break;
 
-        case 11:
+        case 12:
             undo(undoTop, redoTop, depan);
             break;
 
-        case 12:
+        case 13:
             redo(undoTop, redoTop, depan);
             break;
 
-        case 13:
+        case 14:
+            cout << "Masukkan Kategori Baru: ";
+            cin.ignore();
+            getline(cin, namaMatkul); // Menggunakan `namaMatkul` untuk kategori sementara
+            tambahKategori(namaMatkul);
+            break;
+
+        case 15:
+            displayKategori();
+            break;
+
+        case 16:
             cout << "Keluar dari aplikasi.\n";
             clearStack(undoTop);
             clearStack(redoTop);
-
             break;
 
         default:
             cout << "Pilihan tidak valid. Silakan coba lagi.\n";
             break;
         }
-    } while (pilihan != 13);
+    } while (pilihan != 16);
+
+    return 0;
 }
