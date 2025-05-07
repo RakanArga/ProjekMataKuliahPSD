@@ -8,8 +8,9 @@ using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
 // TODO:
-// 1. Nambahin 2 Struktur data lagi
-// 2. Bikin error handler buat tanggal
+// 1. Nambahin 1 Struktur data lagi
+// 2. Bikin DetailTugas
+// 3. Sebisa Mungkin bikin error handling buat semua fungsi
 
 // struct buat data data
 struct Tugas
@@ -32,6 +33,41 @@ struct stack
 Tugas *depan = nullptr;
 stack *undoTop = nullptr;
 stack *redoTop = nullptr;
+Tugas *tugasArray[100];
+int jumlahTugas = 0;
+
+// Array buat menghitung persentase
+void konversiArray()
+{
+    jumlahTugas = 0;
+    Tugas *helper = depan;
+
+    while (helper != nullptr && jumlahTugas < 100)
+    {
+        tugasArray[jumlahTugas++] = helper;
+        helper = helper->next;
+    }
+}
+
+void menunjukkanPersen()
+{
+    konversiArray();
+    if (jumlahTugas == 0)
+    {
+        cout << "Senang Kali Hidup Mu Wak" << endl;
+        return;
+    }
+
+    int selesai = 0;
+    for (int i = 0; i < jumlahTugas; i++)
+    {
+        if (tugasArray[i]->status)
+        {
+            selesai++;
+        }
+    }
+    cout << "Progress   :" << (selesai * 100 / jumlahTugas) << "% selesai.. \n";
+}
 
 // Stack
 Tugas *copyList(Tugas *task)
@@ -489,8 +525,9 @@ int main()
         cout << "10. Urutkan Tugas Berdasarkan Deadline\n";
         cout << "11. Undo\n";
         cout << "12. Redo\n";
-        cout << "13. Keluar\n";
-        cout << "Pilih opsi (1-13): ";
+        cout << "13. Statistik\n";
+        cout << "14. Keluar\n";
+        cout << "Pilih opsi (1-14): ";
         cin >> pilihan;
 
         switch (pilihan)
@@ -570,6 +607,10 @@ int main()
             break;
 
         case 13:
+            menunjukkanPersen();
+            break;
+
+        case 14:
             cout << "Keluar dari aplikasi.\n";
             clearStack(undoTop);
             clearStack(redoTop);
@@ -580,5 +621,5 @@ int main()
             cout << "Pilihan tidak valid. Silakan coba lagi.\n";
             break;
         }
-    } while (pilihan != 13);
+    } while (pilihan != 14);
 }
