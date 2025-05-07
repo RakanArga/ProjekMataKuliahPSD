@@ -10,9 +10,3 @@ Deadline: 2025-09-08
 Status: Belum
 Detail: Tidak ada detail
 --------------------------
-Nama Tugas: Dewek
-Mata Kuliah: Sastra Sunda
-Deadline: 2025-06-09
-Status: Selesai
-Detail: Jirrrrrrrrrrrrr
---------------------------

@@ -6,11 +6,6 @@
 using namespace std;
 using namespace std::chrono;
 
-// LIST LIST ERROR YANG HARUS DI FIX
-// TODO:
-//  Bikin Detail Tugas
-//  Sebisa Mungkin bikin error handling buat semua fungsi
-
 // struct buat data data
 struct Tugas
 {
