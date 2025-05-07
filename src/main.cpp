@@ -8,9 +8,9 @@ using namespace std::chrono;
 
 // LIST LIST ERROR YANG HARUS DI FIX
 // TODO:
-// 1. Nambahin 1 Struktur data lagi
-// 2. Bikin DetailTugas
-// 3. Sebisa Mungkin bikin error handling buat semua fungsi
+//  Bikin DetailTugas
+//  Sebisa Mungkin bikin error handling buat semua fungsi
+// Upgrade queue biar bisa otomatis pop pas systemclock udah lewat.
 
 // struct buat data data
 struct Tugas
@@ -300,64 +300,6 @@ void displayTugasMatkul(string namaMatkulCari)
     }
 }
 
-void sisipkanPrioritas(Tugas*& queuePrioritas, Tugas *tugasBaru)
-{
-
-    auto deadlineBaru = parsingDeadline(tugasBaru->deadline);
-
-    if (queuePrioritas == nullptr || parsingDeadline(tugasBaru->deadline) < parsingDeadline(queuePrioritas->deadline))
-    {
-        tugasBaru->next = queuePrioritas;
-        queuePrioritas = tugasBaru;
-    }
-    else
-    {
-        Tugas *helper = queuePrioritas;
-        while (helper->next != nullptr && parsingDeadline(tugasBaru->deadline) >= parsingDeadline(helper->next->deadline))
-        {
-            helper = helper->next;
-        }
-        tugasBaru->next = helper->next;
-        helper->next = tugasBaru;
-    }
-}
-void tampilkanQueueprioritas()
-{
-    Tugas *queuePrioritas = nullptr;
-    Tugas *helper = depan;
-
-    while (helper != nullptr)
-    {
-        Tugas *salin = new Tugas;
-        *salin = *helper;
-        salin->next = nullptr;
-
-        sisipkanPrioritas(queuePrioritas, salin);
-
-        helper = helper->next;
-    }
-    // tampilkan
-    Tugas *temp = queuePrioritas;
-    while (temp != nullptr)
-    {
-        cout << "----------------------------\n";
-        cout << "Tugas    : " << temp->namaTugas << endl;
-        cout << "Mata Kuliah : " << temp->namaMatkul << endl;
-        cout << "Deadline : " << temp->deadline << endl;
-        cout << "status   : " << (temp->status ? "selesai" : "belum selesai") << endl;
-        displayTimeRemaining(*temp);
-        temp = temp->next;
-    
-    }
-    // bebaskan memori
-    while (queuePrioritas != nullptr)
-    {
-        Tugas *hapus = queuePrioritas;
-        queuePrioritas = queuePrioritas->next;
-        delete hapus;
-    }
-}
-
 void ubahStatus(string tugas)
 {
     bool ditemukan = false;
@@ -540,6 +482,77 @@ bool displayTimeRemaining(Tugas &task)
         return false;
     }
 }
+// Queue
+void sisipkanPrioritas(Tugas *&queuePrioritas, Tugas *tugasBaru)
+{
+
+    auto deadlineBaru = parsingDeadline(tugasBaru->deadline);
+
+    if (queuePrioritas == nullptr || parsingDeadline(tugasBaru->deadline) < parsingDeadline(queuePrioritas->deadline))
+    {
+        tugasBaru->next = queuePrioritas;
+        queuePrioritas = tugasBaru;
+    }
+    else
+    {
+        Tugas *helper = queuePrioritas;
+        while (helper->next != nullptr && parsingDeadline(tugasBaru->deadline) >= parsingDeadline(helper->next->deadline))
+        {
+            helper = helper->next;
+        }
+        tugasBaru->next = helper->next;
+        helper->next = tugasBaru;
+    }
+}
+void autoPop(Tugas *& queuePrioritas)
+{
+    auto now = system_clock::now();
+
+    while(queuePrioritas != nullptr && parsingDeadline(queuePrioritas->deadline) < now)
+    {
+        cout << "❌ Tugas \"" << queuePrioritas->namaTugas << "\" telah melewati deadline dan dihapus dari queue.\n";
+        Tugas* temp = queuePrioritas;
+        queuePrioritas = queuePrioritas->next;
+        delete temp;
+    }
+}
+void tampilkanQueueprioritas()
+{
+    Tugas *queuePrioritas = nullptr;
+    Tugas *helper = depan;
+
+    while (helper != nullptr)
+    {
+        Tugas *salin = new Tugas;
+        *salin = *helper;
+        salin->next = nullptr;
+
+        sisipkanPrioritas(queuePrioritas, salin);
+
+        helper = helper->next;
+    }
+    // autopop
+    autoPop(queuePrioritas);
+    // tampilkan
+    Tugas *temp = queuePrioritas;
+    while (temp != nullptr)
+    {
+        cout << "----------------------------\n";
+        cout << "Tugas    : " << temp->namaTugas << endl;
+        cout << "Mata Kuliah : " << temp->namaMatkul << endl;
+        cout << "Deadline : " << temp->deadline << endl;
+        cout << "status   : " << (temp->status ? "selesai" : "belum selesai") << endl;
+        displayTimeRemaining(*temp);
+        temp = temp->next;
+    }
+    // bebaskan memori
+    while (queuePrioritas != nullptr)
+    {
+        Tugas *hapus = queuePrioritas;
+        queuePrioritas = queuePrioritas->next;
+        delete hapus;
+    }
+}
 
 int main()
 {
@@ -560,7 +573,7 @@ int main()
         cout << "7. Input Detail Tugas\n";
         cout << "8. Simpan Tugas ke File\n";
         cout << "9. Muat Tugas dari File\n";
-        cout << "10. Urutkan Tugas Berdasarkan Deadline\n";
+        cout << "10. Hardcore Mode\n"; // Tugas dimasukkan kedalam queue dan kalo udah diluar waktu itu bakal pop sendiri;
         cout << "11. Undo\n";
         cout << "12. Redo\n";
         cout << "13. Statistik\n";
@@ -632,6 +645,7 @@ int main()
             break;
 
         case 10:
+            cout << "Hardcore Mode: Tugas akan otomatis dihapus jika melewati deadline.\n";
             tampilkanQueueprioritas();
             break;
 
@@ -651,7 +665,6 @@ int main()
             cout << "Keluar dari aplikasi.\n";
             clearStack(undoTop);
             clearStack(redoTop);
-
             break;
 
         default:
