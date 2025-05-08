@@ -56,7 +56,7 @@ void menunjukkanPersen()
     int selesai = 0;
     for (int i = 0; i < jumlahTugas; i++)
     {
-        if (tugasArray[i]->status)
+        if (tugasArray[i]->status == true)
         {
             selesai++;
         }
@@ -410,7 +410,6 @@ void load()
 
     // Berarti nih, bikin while buat open si file nya, sama bikin error handler.
     fstream load("holder.txt", ios::in);
-    string text;
 
     // Error Handler
     if (!load.is_open())
